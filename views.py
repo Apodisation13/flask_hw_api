@@ -18,10 +18,10 @@ class UserView(MethodView):
         if user_id:
             user = User.query.get(user_id)
             response = {
-                        'id': user.id,
-                        'username': user.username,
-                        'email': user.email
-                    }
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
             return jsonify(response)
 
         users = User.query.all()
@@ -39,7 +39,6 @@ class UserView(MethodView):
     def post(self):
         """создать пользователя, вернуть данные пользователя"""
         user = User(**request.json)
-        # user.set_password(request.json['password'])
 
         User.add(user)
 
@@ -79,18 +78,25 @@ class AdvertisementView(MethodView):
 
     def post(self):
         """создать объявление"""
-        user = User(**request.json)
+        ad = Advertisement(**request.json)
         # user.set_password(request.json['password'])
 
-        User.add(user)
+        Advertisement.add(ad)
 
         response = {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
+            'id': ad.id,
+            'username': ad.title,
+            'email': ad.description,
+            'time_created': ad.time_created,
+            'user': ad.user_id
         }
         return jsonify(response)
+
+    def delete(self, ad_id):
+        """удалить пользователя по его user_id, вернуть статус 204"""
+        ad = Advertisement.query.get(ad_id)
+        Advertisement.delete(ad)
+        return jsonify({"status": 204})
 
 
 user_view = UserView.as_view('user_api')
@@ -102,12 +108,14 @@ app.add_url_rule('/users/',
                  defaults={'user_id': None})
 app.add_url_rule('/users/<user_id>',
                  view_func=user_view,
-                 methods=['GET', 'DELETE'])
-
+                 methods=['GET', 'DELETE', ])
 app.add_url_rule('/users/',
                  view_func=user_view,
                  methods=['POST', ])
 
 app.add_url_rule('/ads/',
                  view_func=ad_view,
-                 methods=['GET', ])
+                 methods=['GET', 'POST', ])
+app.add_url_rule('/ads/<ad_id>',
+                 view_func=user_view,
+                 methods=['DELETE', ])

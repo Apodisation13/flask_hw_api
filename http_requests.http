@@ -15,9 +15,8 @@ POST http://localhost:5000/users/
 Content-Type: application/json
 
 {
-  "id": 3,
-  "username": "ssss",
-  "email": "sss@mail.ss",
+  "username": "test43",
+  "email": "t34@mail.ru",
   "password": "sss"
 }
 
@@ -32,5 +31,17 @@ Content-Type: application/json
 # список всех объявлений
 GET http://localhost:5000/ads/
 Content-Type: application/json
+
+###
+
+# создание объявления
+POST http://localhost:5000/ads/
+Content-Type: application/json
+
+{
+  "title": "Куплю утюг",
+  "description": "ну продайте кто-нибудь утюг блин",
+  "user_id": 55
+}
 
 ###

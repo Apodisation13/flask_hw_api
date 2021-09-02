@@ -7,12 +7,8 @@ db = SQLAlchemy()
 # migrate = Migrate(app, db)
 
 
-class User(db.Model):
-
-    id = db.Column(db.INTEGER, primary_key=True)
-    username = db.Column(db.String(64), unique=True, index=True)
-    email = db.Column(db.String(128), unique=True, index=True)
-    password = db.Column(db.String(30))
+class BaseMixin:
+    """общие операции для пользователей и объявлений, создать и удалить"""
 
     def add(self):
         db.session.add(self)
@@ -23,7 +19,17 @@ class User(db.Model):
         db.session.commit()
 
 
-class Advertisement(db.Model):
+class User(db.Model, BaseMixin):
+    """модель, описывающая пользователей"""
+
+    id = db.Column(db.INTEGER, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.String(128), unique=True, index=True)
+    password = db.Column(db.String(30))
+
+
+class Advertisement(db.Model, BaseMixin):
+    """модель, описывающая объявления, FK на пользователя"""
 
     __tablename__ = 'advertisement'
 
