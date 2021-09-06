@@ -1,6 +1,7 @@
 # список пользователей всех
 GET http://localhost:5000/users/
 Content-Type: application/json
+Authorization: Basic testuser 123
 
 ###
 
@@ -15,16 +16,17 @@ POST http://localhost:5000/users/
 Content-Type: application/json
 
 {
-  "username": "test43",
-  "email": "t34@mail.ru",
-  "password": "sss"
+  "username": "testuser",
+  "email": "ttt@mail.ru",
+  "password": "123"
 }
 
 ###
 
 # удаление юзера
-DELETE http://localhost:5000/users/3
+DELETE http://localhost:5000/users/10
 Content-Type: application/json
+Authorization: Basic testuser 123
 
 ###
 
@@ -37,11 +39,42 @@ Content-Type: application/json
 # создание объявления
 POST http://localhost:5000/ads/
 Content-Type: application/json
+Authorization: Basic testuser 123
 
 {
-  "title": "Куплю утюг",
-  "description": "ну продайте кто-нибудь утюг блин",
-  "user_id": 55
+  "title": "Карты деньги 2 ствола",
+  "description": "ШОООО",
+  "user_id": 11
+}
+
+###
+
+# обновление объявления
+PATCH http://localhost:5000/ads/3
+Content-Type: application/json
+Authorization: Basic testuser 123
+
+{
+  "title": "УДАЛЕНО",
+  "description": "Спасибо купил"
+}
+
+###
+
+# удаление объявления
+DELETE http://localhost:5000/ads/1
+Content-Type: application/json
+Authorization: Basic testuser 123
+
+###
+
+# обновление объявления, чисто пользователя, нельзя так
+PATCH http://localhost:5000/ads/3
+Content-Type: application/json
+Authorization: Basic testuser 123
+
+{
+  "user_id": 1
 }
 
 ###

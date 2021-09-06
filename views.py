@@ -1,18 +1,15 @@
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from flask.views import MethodView
 
 from app import app
-from models import User, Advertisement
-
-
-# @app.route('/')
-# def hello_world():  # put application's code here
-#     return 'Hello World!'
+from models import Advertisement, User
+from auth import auth_required
 
 
 class UserView(MethodView):
     """вью для получения списка пользователей, создания и удаления пользователей"""
 
+    @auth_required
     def get(self, user_id):
         """список всех пользователей, или только user_id"""
         if user_id:
@@ -38,27 +35,30 @@ class UserView(MethodView):
 
     def post(self):
         """создать пользователя, вернуть данные пользователя"""
-        user = User(**request.json)
 
+        user = User(**request.json)
+        user.hash_password(request.json['password'])
         User.add(user)
 
         response = {
             "id": user.id,
             "username": user.username,
             "email": user.email,
-            "password": user.password
         }
         return jsonify(response)
 
+    @auth_required
     def delete(self, user_id):
-        """удалить пользователя по его user_id, вернуть статус 204"""
+        """удалить по user_id, только авторизированный и только сам себя"""
         user = User.query.get(user_id)
-        User.delete(user)
-        return jsonify({"status": 204})
+        if request.authorization.username == user.username:
+            User.delete(user)
+            return jsonify({"status": 204})
+        return make_response('Нельзя удалить другого пользователя кроме себя!', 401)
 
 
 class AdvertisementView(MethodView):
-    """вью для получения списка объявлений, создания и удаления объявлений"""
+    """вью для получения списка объявлений, создания, удаления и обновления объявлений"""
 
     def get(self):
         """получение списка всех объявлений"""
@@ -68,40 +68,67 @@ class AdvertisementView(MethodView):
             ads_list.append(
                 {
                     'id': ad.id,
-                    'username': ad.title,
-                    'email': ad.description,
+                    'title': ad.title,
+                    'description': ad.description,
                     'time_created': ad.time_created,
-                    'user': ad.user_id
+                    'user_id': ad.user_id
                 }
             )
         return jsonify(ads_list)
 
+    @auth_required
     def post(self):
-        """создать объявление"""
+        """создать объявление, только авторизованный"""
         ad = Advertisement(**request.json)
-        # user.set_password(request.json['password'])
-
         Advertisement.add(ad)
 
         response = {
             'id': ad.id,
-            'username': ad.title,
-            'email': ad.description,
+            'title': ad.title,
+            'description': ad.description,
             'time_created': ad.time_created,
-            'user': ad.user_id
+            'user_id': ad.user_id
         }
         return jsonify(response)
 
+    @auth_required
     def delete(self, ad_id):
-        """удалить пользователя по его user_id, вернуть статус 204"""
+        """удалить объявление по его ad_id, вернуть статус 204"""
         ad = Advertisement.query.get(ad_id)
-        Advertisement.delete(ad)
-        return jsonify({"status": 204})
+        if request.authorization.username == ad.user.username:
+            Advertisement.delete(ad)
+            return jsonify({"status": 204})
+        return make_response('Нельзя удалить чужое объявление!', 401)
+
+    @auth_required
+    def patch(self, ad_id):
+        """изменить объявление"""
+        ad = Advertisement.query.get(ad_id)
+        data = Advertisement(**request.json)
+        if data.user_id:
+            return make_response('Нельзя изменять автора сообщения!', 401)
+        if request.authorization.username == ad.user.username:
+            ad.update(ad, data)
+            response = {
+                'id': ad.id,
+                'title': ad.title,
+                'description': ad.description,
+                'time_created': ad.time_created,
+                'user_id': ad.user_id
+            }
+            return jsonify(response)
+        return make_response('Нельзя редактировать чужое объявление!', 401)
 
 
-user_view = UserView.as_view('user_api')
 ad_view = AdvertisementView.as_view('ad_api')
+user_view = UserView.as_view('user_api')
 
+app.add_url_rule('/ads/',
+                 view_func=ad_view,
+                 methods=['GET', 'POST', ])
+app.add_url_rule('/ads/<ad_id>',
+                 view_func=ad_view,
+                 methods=['DELETE', 'PATCH', ])
 app.add_url_rule('/users/',
                  view_func=user_view,
                  methods=['GET', ],
@@ -112,10 +139,3 @@ app.add_url_rule('/users/<user_id>',
 app.add_url_rule('/users/',
                  view_func=user_view,
                  methods=['POST', ])
-
-app.add_url_rule('/ads/',
-                 view_func=ad_view,
-                 methods=['GET', 'POST', ])
-app.add_url_rule('/ads/<ad_id>',
-                 view_func=user_view,
-                 methods=['DELETE', ])
