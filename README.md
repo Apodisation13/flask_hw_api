@@ -1,4 +1,4 @@
-#<span style="color:red">Домашнее задание на Flask:</span
+#<span style="color:red">Домашнее задание на Flask:</span>
 REST API (backend) для сайта объявлений.
 
 ## <span style="color:green">Возможности:</span>
